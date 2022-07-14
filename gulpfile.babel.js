@@ -5,7 +5,6 @@ import watchify from 'watchify';
 import babel from 'gulp-babel';
 import source from 'vinyl-source-stream';
 import connect from 'gulp-connect';
-import sass from 'gulp-sass';
 
 const paths = {
   src: './src',
@@ -64,54 +63,4 @@ gulp.task('babel', () => {
     .pipe(gulp.dest(paths.dest))
 });
 
-// Kick off a server to run the example app
-gulp.task('example-server', () => {
-  connect.server({
-    root: 'docs/',
-    livereload: true,
-  });
-});
-
-// Watch and build the example app
-gulp.task('example-watch-js', () => {
-  const opts = Object.assign({}, watchify.args, {
-    entries: 'docs/script.js',
-    debug: true,
-  });
-  const bundler = watchify(browserify(opts)); 
-  bundler.transform('babelify', {presets: ['es2015', 'react']});
-
-  function bundle() {
-    bundler.bundle()
-      .on('error', console.log)
-      .pipe(source('docs/bundle.js'))
-      .pipe(connect.reload())
-      .pipe(gulp.dest('docs/dist'))
-  }
-
-  bundle(bundler);
-
-  bundler.on('update', bundle);
-  bundler.on('log', console.log);
-});
-
-gulp.task('example-watch-scss', () => {
-  return gulp.watch('docs/*.scss', gulp.series('example-build-scss'))
-});
-
-gulp.task('example-build-scss', () => {
-  // Build sass
-  return gulp.src('docs/*.scss')
-  .pipe(sass().on('error', sass.logError))
-  .pipe(gulp.dest('docs/css'))
-  .pipe(connect.reload());
-})
-
-gulp.task('example', gulp.parallel(
-  'example-server',
-  'example-watch-js',
-  'example-build-scss',
-  'example-watch-scss',
-  'watch',
-));
 gulp.task('default', gulp.series('babel', 'dev', 'production'));
